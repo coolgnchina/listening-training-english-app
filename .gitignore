@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# Database
+*.sqlite3
+*.db
+app.db
+
+# IDE / Editor
+.vscode/
+.idea/
+
+# Node
+node_modules/
+dist/
+
+# OS generated files
+.DS_Store
+Thumbs.db
