@@ -9,6 +9,9 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isAuthenticated: (state) => !!state.token,
     userId: (state) => (state.user ? state.user.user_id : null),
+    username: (state) => (state.user ? state.user.username : null),
+    isVip: (state) => (state.user ? state.user.is_vip : false),
+    isAdmin: (state) => state.user?.is_admin || false,
   },
   actions: {
     async login(username, password) {
@@ -31,7 +34,12 @@ export const useAuthStore = defineStore('auth', {
         localStorage.setItem('token', data.token);
         
         const decodedToken = jwtDecode(data.token);
-        this.user = { user_id: decodedToken.user_id };
+        this.user = { 
+          user_id: decodedToken.user_id, 
+          username: decodedToken.username || username,
+          is_vip: decodedToken.is_vip, 
+          is_admin: decodedToken.is_admin 
+        };
         localStorage.setItem('user', JSON.stringify(this.user));
 
         return true;
@@ -40,27 +48,39 @@ export const useAuthStore = defineStore('auth', {
         return false;
       }
     },
-    async register(username, password) {
+    async register(username, password, captcha, captchaId) {
         try {
           const response = await fetch('http://127.0.0.1:5000/register', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ username, password }),
+            body: JSON.stringify({ username, password, captcha_text: captcha, captcha_id: captchaId }),
           });
   
+          const data = await response.json();
+          
           if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Registration failed');
+            return {
+              success: false,
+              message: data.message || 'Registration failed'
+            };
           }
   
-          return true;
+          return {
+            success: true,
+            message: data.message
+          };
         } catch (error) {
           console.error('Registration error:', error);
-          return false;
+          return {
+            success: false,
+            message: 'Network error occurred'
+          };
         }
       },
+
+
     logout() {
       this.token = null;
       this.user = null;
@@ -71,7 +91,7 @@ export const useAuthStore = defineStore('auth', {
       const token = localStorage.getItem('token');
       if (token) {
         const decodedToken = jwtDecode(token);
-        this.user = { user_id: decodedToken.user_id };
+        this.user = { user_id: decodedToken.user_id, is_vip: decodedToken.is_vip, is_admin: decodedToken.is_admin };
         localStorage.setItem('user', JSON.stringify(this.user));
       } else {
         this.user = null;

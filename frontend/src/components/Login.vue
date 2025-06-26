@@ -1,17 +1,17 @@
 <template>
   <div class="auth-container">
-    <div class="auth-form">
-      <h2 class="auth-title">登录</h2>
+    <div class="auth-form card">
+      <h2 class="page-title">登录</h2>
       <form @submit.prevent="handleLogin">
         <div class="form-group">
-          <label for="username">用户名</label>
-          <input type="text" id="username" v-model="username" required placeholder="请输入您的用户名">
+          <label for="username" class="form-label">用户名</label>
+          <input type="text" id="username" v-model="username" required placeholder="请输入您的用户名" class="form-input">
         </div>
         <div class="form-group">
-          <label for="password">密码</label>
-          <input type="password" id="password" v-model="password" required placeholder="请输入您的密码">
+          <label for="password" class="form-label">密码</label>
+          <input type="password" id="password" v-model="password" required placeholder="请输入您的密码" class="form-input">
         </div>
-        <button type="submit" class="submit-btn">登录</button>
+        <button type="submit" class="btn btn-primary submit-btn">登录</button>
         <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
       </form>
     </div>
@@ -44,71 +44,44 @@ const handleLogin = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
-  height: 100%;
+  min-height: 100vh;
+  padding: var(--spacing-lg);
+  background: var(--gradient-primary);
 }
 
 .auth-form {
   width: 100%;
-  max-width: 400px;
-  padding: 2rem;
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-.auth-title {
-  font-size: 2rem;
-  color: #333;
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #555;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #007bff;
+  max-width: 450px;
+  padding: var(--spacing-2xl);
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .submit-btn {
   width: 100%;
-  padding: 0.75rem;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.submit-btn:hover {
-  background-color: #0056b3;
+  padding: var(--spacing-md);
+  font-size: var(--font-size-lg);
+  margin-top: var(--spacing-md);
 }
 
 .error-message {
-  color: #dc3545;
+  color: var(--danger-color);
   text-align: center;
-  margin-top: 1rem;
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm);
+  background: rgba(220, 53, 69, 0.1);
+  border-radius: var(--border-radius-md);
+  border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+@media (max-width: 768px) {
+  .auth-container {
+    padding: var(--spacing-md);
+  }
+  
+  .auth-form {
+    padding: var(--spacing-xl);
+  }
 }
 </style>

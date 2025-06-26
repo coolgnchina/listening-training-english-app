@@ -3,3 +3,5 @@ Flask-SQLAlchemy
 PyJWT
 Werkzeug
 Flask-Cors
+srt
+Pillow

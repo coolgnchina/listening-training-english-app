@@ -167,5 +167,20 @@ const submitForm = async () => {
   }
 };
 
-onMounted(fetchCourse);
+// VIP权限检查
+const checkVipPermission = () => {
+  if (!authStore.isVip) {
+    alert('只有VIP用户才能创建课程');
+    router.push('/courses');
+    return false;
+  }
+  return true;
+};
+
+onMounted(() => {
+  if (!isEditMode.value && !checkVipPermission()) {
+    return;
+  }
+  fetchCourse();
+});
 </script>
