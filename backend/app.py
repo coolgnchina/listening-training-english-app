@@ -198,40 +198,65 @@ def get_captcha():
         'image': captcha_image
     })
 
+# 健康检查接口
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.datetime.now().isoformat(),
+        'version': '1.0.0',
+        'database': 'connected'
+    }), 200
+
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
+    
+    if not data:
+        return jsonify({'error': '请提供注册信息'}), 400
+    
     username = data.get('username')
+    email = data.get('email')
     password = data.get('password')
     captcha_id = data.get('captcha_id')
     captcha_text = data.get('captcha_text')
-
+    
+    # 验证必填字段
+    if not all([username, email, password, captcha_id, captcha_text]):
+        return jsonify({'error': '所有字段都是必填的'}), 400
+    
     # 验证验证码
-    captcha_info = captcha_store.get(captcha_id)
-    if not captcha_info or captcha_info['text'] != captcha_text.lower():
-        return jsonify({'message': '验证码错误'}), 400
-
-    if captcha_info['expires'] < datetime.datetime.utcnow():
-        del captcha_store[captcha_id]
-        return jsonify({'message': '验证码已过期'}), 400
-
-    del captcha_store[captcha_id]  # 验证后删除
-
-    if not all([username, password]):
-        return jsonify({'message': '缺少必填字段'}), 400
-
+    if captcha_id not in captcha_store:
+        return jsonify({'error': '验证码已过期'}), 400
+    
+    if captcha_store[captcha_id].lower() != captcha_text.lower():
+        return jsonify({'error': '验证码错误'}), 400
+    
+    # 删除已使用的验证码
+    del captcha_store[captcha_id]
+    
+    # 验证邮箱格式
+    if not validate_email(email):
+        return jsonify({'error': '邮箱格式不正确'}), 400
+    
+    # 检查用户名和邮箱是否已存在
     if User.query.filter_by(username=username).first():
-        return jsonify({'message': '用户名已存在'}), 409
-
-
-
-    new_user = User(username=username, email=f'{username}@example.com') # 使用一个虚拟邮箱
-    new_user.set_password(password)
-
-    db.session.add(new_user)
-    db.session.commit()
-
-    return jsonify({'message': '注册成功'}), 201
+        return jsonify({'error': '用户名已存在'}), 400
+    
+    if User.query.filter_by(email=email).first():
+        return jsonify({'error': '邮箱已被注册'}), 400
+    
+    # 创建新用户
+    hashed_password = generate_password_hash(password)
+    new_user = User(username=username, email=email, password_hash=hashed_password)
+    
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({'message': '注册成功'}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': '注册失败，请稍后重试'}), 500
 
 
 
