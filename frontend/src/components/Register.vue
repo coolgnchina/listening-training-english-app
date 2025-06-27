@@ -35,6 +35,7 @@
 import { ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
+import { buildApiUrl } from '../config/api';
 
 const username = ref('');
 
@@ -50,7 +51,7 @@ const router = useRouter();
 // 获取验证码
 const getCaptcha = async () => {
   try {
-    const response = await fetch('http://127.0.0.1:5000/captcha');
+    const response = await fetch(buildApiUrl('/captcha'));
     if (response.ok) {
       const data = await response.json();
       captchaImage.value = data.image;

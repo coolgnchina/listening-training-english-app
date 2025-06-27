@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { jwtDecode } from 'jwt-decode';
+import { buildApiUrl } from '../config/api';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -16,7 +17,7 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login(username, password) {
       try {
-        const response = await fetch('http://127.0.0.1:5000/login', {
+        const response = await fetch(buildApiUrl('/login'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -50,7 +51,7 @@ export const useAuthStore = defineStore('auth', {
     },
     async register(username, password, captcha, captchaId) {
         try {
-          const response = await fetch('http://127.0.0.1:5000/register', {
+          const response = await fetch(buildApiUrl('/register'), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
