@@ -13,7 +13,7 @@ const API_CONFIG = {
 // 获取当前环境
 const getEnvironment = () => {
   // 在Vite中，import.meta.env.MODE 表示当前模式
-  if (typeof import !== 'undefined' && import.meta && import.meta.env) {
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
     return import.meta.env.MODE === 'production' ? 'production' : 'development';
   }
   // 备用检测方法
