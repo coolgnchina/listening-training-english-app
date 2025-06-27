@@ -4,9 +4,9 @@ const API_CONFIG = {
   development: {
     baseURL: 'http://127.0.0.1:5000'
   },
-  // 生产环境 - 需要根据实际服务器配置修改
+  // 生产环境 - 修复域名
   production: {
-    baseURL: 'https://www.englishpod666.icu'
+    baseURL: 'https://englishpod666.icu'  // 移除 www 前缀
   }
 };
 
