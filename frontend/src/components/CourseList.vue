@@ -58,6 +58,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
+import { buildApiUrl } from '@/config/api';
 
 const courses = ref([]);
 const selectedDifficulty = ref('all');
@@ -95,7 +96,7 @@ const fetchCourses = async () => {
       headers['Authorization'] = `Bearer ${authStore.token}`;
     }
     
-    const response = await fetch('http://127.0.0.1:5000/api/courses/all', {
+        const response = await fetch(buildApiUrl('/api/courses/all'), {
       headers
     });
     if (!response.ok) {
@@ -122,7 +123,7 @@ const confirmDelete = async () => {
   showConfirmDialog.value = false;
   
   try {
-    const response = await fetch(`http://127.0.0.1:5000/api/courses/${courseId}`, {
+        const response = await fetch(buildApiUrl(`/api/courses/${courseId}`), {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${authStore.token}`,

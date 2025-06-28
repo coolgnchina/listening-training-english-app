@@ -100,6 +100,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useHeartsStore } from '@/stores/hearts';
 import HeartsDisplay from '@/components/HeartsDisplay.vue';
 import { useRouter } from 'vue-router';
+import { buildApiUrl } from '@/config/api';
 
 const authStore = useAuthStore();
 const heartsStore = useHeartsStore();
@@ -130,7 +131,7 @@ const changePassword = async () => {
   isLoading.value = true;
 
   try {
-    const response = await fetch('http://127.0.0.1:5000/api/change-password', {
+        const response = await fetch(buildApiUrl('/api/change-password'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { useAuthStore } from './auth'
 import { useErrorHandler } from '@/composables/useErrorHandler'
+import { buildApiUrl } from '@/config/api'
 
 export const useHeartsStore = defineStore('hearts', () => {
   // 状态
@@ -49,7 +50,7 @@ export const useHeartsStore = defineStore('hearts', () => {
     }
     
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/user/hearts', {
+            const response = await fetch(buildApiUrl('/api/user/hearts'), {
         headers: {
           'Authorization': `Bearer ${authStore.token}`,
         },
@@ -102,7 +103,7 @@ export const useHeartsStore = defineStore('hearts', () => {
     }
     
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/user/hearts/lose', {
+            const response = await fetch(buildApiUrl('/api/user/hearts/lose'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,7 +145,7 @@ export const useHeartsStore = defineStore('hearts', () => {
     if (!authStore.token) return
     
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/user/hearts/reward', {
+            const response = await fetch(buildApiUrl('/api/user/hearts/reward'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -178,7 +179,7 @@ export const useHeartsStore = defineStore('hearts', () => {
     if (!authStore.token) return
     
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/hearts/consecutive', {
+            const response = await fetch(buildApiUrl('/api/hearts/consecutive'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

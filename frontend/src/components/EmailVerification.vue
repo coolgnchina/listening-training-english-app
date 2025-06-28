@@ -35,6 +35,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { buildApiUrl } from '@/config/api';
 
 const route = useRoute();
 const router = useRouter();
@@ -48,7 +49,7 @@ const resendMessageType = ref('');
 
 const verifyEmail = async (token) => {
   try {
-    const response = await fetch('http://127.0.0.1:5000/verify-email', {
+        const response = await fetch(buildApiUrl('/verify-email'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -79,7 +80,7 @@ const resendEmail = async () => {
   resendMessage.value = '';
   
   try {
-    const response = await fetch('http://127.0.0.1:5000/resend-verification', {
+        const response = await fetch(buildApiUrl('/resend-verification'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
