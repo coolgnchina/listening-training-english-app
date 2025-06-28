@@ -30,9 +30,15 @@ export const getApiBaseUrl = () => {
 
 // 构建完整的API URL
 export const buildApiUrl = (endpoint) => {
+  const env = getEnvironment();
   const baseUrl = getApiBaseUrl();
   // 确保endpoint以/开头
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+  if (env === 'production') {
+    return `${baseUrl}/api${cleanEndpoint}`;
+  }
+
   return `${baseUrl}${cleanEndpoint}`;
 };
 
