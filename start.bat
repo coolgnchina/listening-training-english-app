@@ -1,4 +1,5 @@
 @echo off
+chcp 65001
 color 0B
 echo 正在启动后端服务...
 start "后端服务" /D ".\backend" python app.py
