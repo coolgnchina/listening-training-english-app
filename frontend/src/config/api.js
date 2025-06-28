@@ -30,10 +30,18 @@ export const getApiBaseUrl = () => {
 
 // 构建完整的API URL
 export const buildApiUrl = (endpoint) => {
-  const baseUrl = getApiBaseUrl();
+  const env = getEnvironment();
+  const baseUrl = API_CONFIG[env].baseURL;
   // 确保endpoint以/开头
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  return `${baseUrl}/api${cleanEndpoint}`;
+  
+  if (env === 'production') {
+    // 生产环境下，我们依赖Nginx代理，所以直接使用相对路径
+    return `/api${cleanEndpoint}`;
+  }
+  
+  // 开发环境下，使用完整的URL，由Vite开发服务器代理
+  return `${baseUrl}${cleanEndpoint}`;
 };
 
 // 导出配置对象
