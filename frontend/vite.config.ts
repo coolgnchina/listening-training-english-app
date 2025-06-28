@@ -48,18 +48,6 @@ export default defineConfig({
     host: true,
     // 代理配置（开发环境）
     proxy: {
-      '/captcha': {
-        target: 'http://127.0.0.1:5000',
-        changeOrigin: true
-      },
-      '/login': {
-        target: 'http://127.0.0.1:5000',
-        changeOrigin: true
-      },
-      '/register': {
-        target: 'http://127.0.0.1:5000',
-        changeOrigin: true
-      },
       '/api': {
         target: 'http://127.0.0.1:5000',
         changeOrigin: true

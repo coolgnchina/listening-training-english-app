@@ -3,6 +3,7 @@ import srt
 from flask import Flask, request, jsonify, send_file, send_from_directory, make_response
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import jwt
@@ -21,13 +22,7 @@ from email.mime.multipart import MIMEMultipart
 import re
 
 app = Flask(__name__)
-CORS(app, resources={
-    r"/api/*": {
-        "origins": ["*"],
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
-    }
-})  # Enable CORS for all routes
+CORS(app, supports_credentials=True)
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 # Database Configuration
@@ -41,7 +36,8 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
-
+# 验证码存储（生产环境建议使用Redis）
+captcha_store = {}
 
 
 @app.after_request
@@ -57,20 +53,13 @@ def add_headers(response):
 
     return response
 
-
-
-def validate_email(email):
-    """验证邮箱格式"""
-    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    return re.match(pattern, email) is not None
-
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # Models
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=True)
     password_hash = db.Column(db.String(200), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     is_vip = db.Column(db.Boolean, default=False)
@@ -150,7 +139,80 @@ class LevelCompletion(db.Model):
     def __repr__(self):
         return f'<LevelCompletion User:{self.user_id} Course:{self.course_id} Level:{self.level_index}>'
 
+# 生成验证码图片
+def generate_captcha():
+    # 生成随机验证码文本
+    captcha_text = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+    
+    # 创建图片
+    width, height = 120, 40
+    image = Image.new('RGB', (width, height), color='white')
+    draw = ImageDraw.Draw(image)
+    
+    # 使用Pillow自带的默认字体，以确保在任何环境中都能运行
+    font = ImageFont.load_default()
+    
+    # 添加干扰线
+    for _ in range(5):
+        x1 = random.randint(0, width)
+        y1 = random.randint(0, height)
+        x2 = random.randint(0, width)
+        y2 = random.randint(0, height)
+        draw.line([(x1, y1), (x2, y2)], fill='gray', width=1)
+    
+    # 绘制验证码文本
+    text_width = draw.textlength(captcha_text, font=font)
+    text_height = 20
+    x = (width - text_width) // 2
+    y = (height - text_height) // 2
+    
+    # 为每个字符添加随机颜色和位置偏移
+    for i, char in enumerate(captcha_text):
+        char_x = x + i * (text_width // len(captcha_text)) + random.randint(-3, 3)
+        char_y = y + random.randint(-3, 3)
+        color = (random.randint(0, 100), random.randint(0, 100), random.randint(0, 100))
+        draw.text((char_x, char_y), char, fill=color, font=font)
+    
+    # 添加噪点
+    for _ in range(50):
+        x = random.randint(0, width)
+        y = random.randint(0, height)
+        draw.point((x, y), fill='gray')
+    
+    # 转换为base64
+    buffer = BytesIO()
+    image.save(buffer, format='PNG')
+    image_data = buffer.getvalue()
+    image_base64 = base64.b64encode(image_data).decode('utf-8')
+    
+    return captcha_text, f"data:image/png;base64,{image_base64}"
 
+def clean_expired_captchas():
+    """清理过期的验证码"""
+    current_time = datetime.datetime.utcnow()
+    expired_keys = [key for key, value in captcha_store.items() 
+                   if current_time > value['expires']]
+    for key in expired_keys:
+        del captcha_store[key]
+
+@app.route('/api/captcha', methods=['GET'])
+def get_captcha():
+    # 清理过期验证码
+    clean_expired_captchas()
+    
+    captcha_text, captcha_image = generate_captcha()
+    captcha_id = str(uuid.uuid4())
+    
+    # 存储验证码（5分钟过期）
+    captcha_store[captcha_id] = {
+        'text': captcha_text.lower(),
+        'expires': datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+    }
+    
+    return jsonify({
+        'id': captcha_id,
+        'image': captcha_image
+    })
 
 # 处理OPTIONS预检请求
 @app.before_request
@@ -174,30 +236,39 @@ def health_check():
 
 @app.route('/api/register', methods=['POST'])
 def register():
+    app.logger.info('Register endpoint was hit.')
     try:
         data = request.get_json()
+        app.logger.info(f'Received registration data: {data}')
         
         if not data:
+            app.logger.warning('No data provided for registration.')
             return jsonify({'error': '请提供注册信息'}), 400
     except Exception as e:
+        app.logger.error(f'Error parsing JSON: {e}')
         return jsonify({'error': '无效的JSON格式'}), 400
     
     username = data.get('username')
     password = data.get('password')
+    
     # 验证必填字段
     if not all([username, password]):
-        return jsonify({'error': '用户名和密码是必填项'}), 400
+        app.logger.warning(f'Missing username or password. Username: {username}, Password: {"present" if password else "missing"}')
+        return jsonify({'error': '用户名和密码是必填的'}), 400
     
     # 验证用户名长度
     if len(username) < 3:
+        app.logger.warning(f'Username "{username}" is too short.')
         return jsonify({'error': '用户名长度至少为3位'}), 400
     
     # 验证密码长度
     if len(password) < 6:
+        app.logger.warning(f'Password for user "{username}" is too short.')
         return jsonify({'error': '密码长度至少为6位'}), 400
     
     # 检查用户名是否已存在
     if User.query.filter_by(username=username).first():
+        app.logger.warning(f'Username "{username}" already exists.')
         return jsonify({'error': '用户名已存在'}), 400
     
     # 创建新用户
@@ -207,9 +278,11 @@ def register():
     try:
         db.session.add(new_user)
         db.session.commit()
+        app.logger.info(f'User "{username}" created successfully.')
         return jsonify({'message': '注册成功'}), 201
     except Exception as e:
         db.session.rollback()
+        app.logger.error(f'Error creating user "{username}": {e}', exc_info=True)
         return jsonify({'error': '注册失败，请稍后重试'}), 500
 
 
@@ -458,7 +531,7 @@ def hello_world():
 
 def seed_data():
     if User.query.count() == 0:
-        user = User(username='default_user', email='admin@example.com')
+        user = User(username='default_user')
         user.set_password('password')
         user.is_vip = True  # 设置为VIP
         user.is_admin = True  # 设置为管理员

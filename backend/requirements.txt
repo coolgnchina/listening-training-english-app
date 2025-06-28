@@ -5,3 +5,4 @@ Werkzeug
 Flask-Cors
 srt
 Pillow
+Flask-Migrate

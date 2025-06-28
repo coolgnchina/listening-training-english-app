@@ -31,7 +31,6 @@
 import { ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
-import { buildApiUrl } from '../config/api';
 
 const username = ref('');
 const password = ref('');
@@ -42,38 +41,13 @@ const authStore = useAuthStore();
 const router = useRouter();
 
 const handleRegister = async () => {
-  // 基本验证
-  if (!username.value || !password.value || !confirmPassword.value) {
-    message.value = '请填写所有必填字段';
-    messageType.value = 'error';
-    return;
-  }
-  
-  if (password.value.length < 6) {
-    message.value = '密码长度至少为6位';
-    messageType.value = 'error';
-    return;
-  }
-  
-  if (password.value !== confirmPassword.value) {
-    message.value = '两次输入的密码不一致';
-    messageType.value = 'error';
-    return;
-  }
-  
-  const result = await authStore.register(username.value, password.value);
+  const auth = useAuthStore();
+  const result = await auth.register(username.value, password.value);
   if (result.success) {
-    message.value = '注册成功！';
-    messageType.value = 'success';
-    // 清空表单
-    username.value = '';
-    password.value = '';
-    confirmPassword.value = '';
-    // 3秒后跳转到登录页面
-    setTimeout(() => router.push('/login'), 3000);
+    alert('注册成功，请登录');
+    router.push('/login');
   } else {
-    message.value = result.message || '注册失败，请检查输入信息。';
-    messageType.value = 'error';
+    alert(result.message);
   }
 };
 </script>

@@ -19,7 +19,7 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login(username, password) {
       try {
-        const response = await fetch(buildApiUrl('/login'), {
+        const response = await fetch(buildApiUrl('/api/login'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ export const useAuthStore = defineStore('auth', {
     },
     async register(username, password) {
       try {
-        const response = await fetch(buildApiUrl('/register'), {
+        const response = await fetch(buildApiUrl('/api/register'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -61,28 +61,27 @@ export const useAuthStore = defineStore('auth', {
           body: JSON.stringify({ username, password }),
         });
   
-          const data = await response.json();
-          
-          if (!response.ok) {
-            return {
-              success: false,
-              message: data.message || 'Registration failed'
-            };
-          }
-  
-          return {
-            success: true,
-            message: data.message
-          };
-        } catch (error) {
-          console.error('Registration error:', error);
+        const data = await response.json();
+        
+        if (!response.ok) {
           return {
             success: false,
-            message: 'Network error occurred'
+            message: data.error || 'Registration failed'
           };
         }
-      },
 
+        return {
+          success: true,
+          message: data.message
+        };
+      } catch (error) {
+        console.error('Registration error:', error);
+        return {
+          success: false,
+          message: 'Network error occurred'
+        };
+      }
+    },
 
     logout() {
       this.token = null;
