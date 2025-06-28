@@ -182,7 +182,7 @@ def generate_captcha():
     
     return captcha_text, f"data:image/png;base64,{image_base64}"
 
-@app.route('/captcha', methods=['GET'])
+@app.route('/api/captcha', methods=['GET'])
 def get_captcha():
     captcha_text, captcha_image = generate_captcha()
     captcha_id = str(uuid.uuid4())
@@ -208,7 +208,7 @@ def health_check():
         'database': 'connected'
     }), 200
 
-@app.route('/register', methods=['POST'])
+@app.route('/api/register', methods=['POST'])
 def register():
     data = request.get_json()
     
@@ -262,7 +262,7 @@ def register():
 
 
 
-@app.route('/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
     username = data.get('username')
