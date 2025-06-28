@@ -51,7 +51,7 @@ const router = useRouter();
 // 获取验证码
 const getCaptcha = async () => {
   try {
-    const response = await fetch('/api/captcha');
+    const response = await fetch(buildApiUrl('/captcha'));
     if (response.ok) {
       const data = await response.json();
       captchaImage.value = data.image;
