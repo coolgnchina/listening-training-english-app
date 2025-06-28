@@ -1,6 +1,6 @@
 import os
 import srt
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_file, send_from_directory, make_response
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -21,7 +21,13 @@ from email.mime.multipart import MIMEMultipart
 import re
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["*"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})  # Enable CORS for all routes
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 # Database Configuration
@@ -219,6 +225,16 @@ def get_captcha():
         'id': captcha_id,
         'image': captcha_image
     })
+
+# 处理OPTIONS预检请求
+@app.before_request
+def handle_preflight():
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add('Access-Control-Allow-Headers', "*")
+        response.headers.add('Access-Control-Allow-Methods', "*")
+        return response
 
 # 健康检查接口
 @app.route('/api/health', methods=['GET'])
