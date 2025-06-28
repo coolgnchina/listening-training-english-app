@@ -39,6 +39,20 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 captcha_store = {}
 
 
+@app.after_request
+def add_headers(response):
+    # 为所有响应添加安全头
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+
+    # 专门为验证码接口添加禁止缓存的头
+    if request.path == '/api/captcha':
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+
+    return response
+
+
 
 def validate_email(email):
     """验证邮箱格式"""

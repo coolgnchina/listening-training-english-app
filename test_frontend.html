@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>前端功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .test-button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
+        .success {
+            border-left-color: #28a745;
+            background-color: #d4edda;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background-color: #f8d7da;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>听力训练应用 - 前端功能测试</h1>
+    
+    <div class="test-section">
+        <h2>1. 路由测试</h2>
+        <p>测试 Vue Router 是否正常工作，点击以下链接应该能正常跳转：</p>
+        <a href="http://localhost:5174/" class="test-button">首页</a>
+        <a href="http://localhost:5174/courses" class="test-button">课程页面</a>
+        <a href="http://localhost:5174/login" class="test-button">登录页面</a>
+        <a href="http://localhost:5174/register" class="test-button">注册页面</a>
+        <div class="result">
+            <strong>预期结果：</strong>所有链接都能正常跳转，不出现 404 错误
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. API 连接测试</h2>
+        <p>测试后端 API 是否正常响应：</p>
+        <button class="test-button" onclick="testAPI()">测试 API 连接</button>
+        <div id="api-result" class="result" style="display:none;">
+            <div id="api-content"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. 认证功能测试</h2>
+        <p>测试登录和注册功能：</p>
+        <button class="test-button" onclick="testLogin()">测试登录 API</button>
+        <button class="test-button" onclick="testRegister()">测试注册 API</button>
+        <div id="auth-result" class="result" style="display:none;">
+            <div id="auth-content"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. 前端构建检查</h2>
+        <p>检查前端是否正确构建和部署：</p>
+        <button class="test-button" onclick="checkBuild()">检查构建状态</button>
+        <div id="build-result" class="result" style="display:none;">
+            <div id="build-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // API 基础 URL
+        const API_BASE = 'http://localhost:5000';
+        
+        // 测试 API 连接
+        async function testAPI() {
+            const resultDiv = document.getElementById('api-result');
+            const contentDiv = document.getElementById('api-content');
+            resultDiv.style.display = 'block';
+            
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    contentDiv.innerHTML = `<strong>✅ API 连接成功</strong><br>响应: ${JSON.stringify(data, null, 2)}`;
+                    resultDiv.className = 'result success';
+                } else {
+                    contentDiv.innerHTML = `<strong>❌ API 连接失败</strong><br>状态码: ${response.status}`;
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                contentDiv.innerHTML = `<strong>❌ API 连接错误</strong><br>错误: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+        
+        // 测试登录功能
+        async function testLogin() {
+            const resultDiv = document.getElementById('auth-result');
+            const contentDiv = document.getElementById('auth-content');
+            resultDiv.style.display = 'block';
+            
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: 'test_user',
+                        password: 'wrong_password'
+                    })
+                });
+                
+                const data = await response.json();
+                if (response.status === 401) {
+                    contentDiv.innerHTML = `<strong>✅ 登录 API 正常</strong><br>正确返回认证失败: ${data.message}`;
+                    resultDiv.className = 'result success';
+                } else {
+                    contentDiv.innerHTML = `<strong>⚠️ 登录 API 响应异常</strong><br>状态码: ${response.status}<br>响应: ${JSON.stringify(data, null, 2)}`;
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                contentDiv.innerHTML = `<strong>❌ 登录 API 错误</strong><br>错误: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+        
+        // 测试注册功能
+        async function testRegister() {
+            const resultDiv = document.getElementById('auth-result');
+            const contentDiv = document.getElementById('auth-content');
+            resultDiv.style.display = 'block';
+            
+            try {
+                const response = await fetch(`${API_BASE}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: '',
+                        password: '',
+                        email: ''
+                    })
+                });
+                
+                const data = await response.json();
+                if (response.status === 400) {
+                    contentDiv.innerHTML = `<strong>✅ 注册 API 正常</strong><br>正确返回验证错误: ${data.message}`;
+                    resultDiv.className = 'result success';
+                } else {
+                    contentDiv.innerHTML = `<strong>⚠️ 注册 API 响应异常</strong><br>状态码: ${response.status}<br>响应: ${JSON.stringify(data, null, 2)}`;
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                contentDiv.innerHTML = `<strong>❌ 注册 API 错误</strong><br>错误: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+        
+        // 检查构建状态
+        function checkBuild() {
+            const resultDiv = document.getElementById('build-result');
+            const contentDiv = document.getElementById('build-content');
+            resultDiv.style.display = 'block';
+            
+            // 检查当前页面是否能正常加载
+            const checks = [
+                { name: 'JavaScript 执行', status: typeof fetch !== 'undefined' },
+                { name: 'CSS 样式加载', status: getComputedStyle(document.body).fontFamily.includes('Arial') },
+                { name: '开发服务器运行', status: window.location.port === '5174' },
+                { name: 'HTML5 支持', status: !!document.querySelector }
+            ];
+            
+            let allPassed = true;
+            let resultHTML = '<strong>构建状态检查:</strong><br>';
+            
+            checks.forEach(check => {
+                const icon = check.status ? '✅' : '❌';
+                resultHTML += `${icon} ${check.name}: ${check.status ? '正常' : '异常'}<br>`;
+                if (!check.status) allPassed = false;
+            });
+            
+            contentDiv.innerHTML = resultHTML;
+            resultDiv.className = allPassed ? 'result success' : 'result error';
+        }
+        
+        // 页面加载时自动检查构建状态
+        window.addEventListener('load', function() {
+            setTimeout(checkBuild, 1000);
+        });
+    </script>
+</body>
+</html>
