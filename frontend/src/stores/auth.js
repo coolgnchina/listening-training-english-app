@@ -51,15 +51,15 @@ export const useAuthStore = defineStore('auth', {
         return false;
       }
     },
-    async register(username, password, captcha, captchaId) {
-        try {
-          const response = await fetch(buildApiUrl('/register'), {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password, captcha_text: captcha, captcha_id: captchaId }),
-          });
+    async register(username, password) {
+      try {
+        const response = await fetch(buildApiUrl('/register'), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password }),
+        });
   
           const data = await response.json();
           

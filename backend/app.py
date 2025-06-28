@@ -41,8 +41,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
-# 验证码存储（生产环境建议使用Redis）
-captcha_store = {}
+
 
 
 @app.after_request
@@ -151,80 +150,7 @@ class LevelCompletion(db.Model):
     def __repr__(self):
         return f'<LevelCompletion User:{self.user_id} Course:{self.course_id} Level:{self.level_index}>'
 
-# 生成验证码图片
-def generate_captcha():
-    # 生成随机验证码文本
-    captcha_text = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
-    
-    # 创建图片
-    width, height = 120, 40
-    image = Image.new('RGB', (width, height), color='white')
-    draw = ImageDraw.Draw(image)
-    
-    # 使用Pillow自带的默认字体，以确保在任何环境中都能运行
-    font = ImageFont.load_default()
-    
-    # 添加干扰线
-    for _ in range(5):
-        x1 = random.randint(0, width)
-        y1 = random.randint(0, height)
-        x2 = random.randint(0, width)
-        y2 = random.randint(0, height)
-        draw.line([(x1, y1), (x2, y2)], fill='gray', width=1)
-    
-    # 绘制验证码文本
-    text_width = draw.textlength(captcha_text, font=font)
-    text_height = 20
-    x = (width - text_width) // 2
-    y = (height - text_height) // 2
-    
-    # 为每个字符添加随机颜色和位置偏移
-    for i, char in enumerate(captcha_text):
-        char_x = x + i * (text_width // len(captcha_text)) + random.randint(-3, 3)
-        char_y = y + random.randint(-3, 3)
-        color = (random.randint(0, 100), random.randint(0, 100), random.randint(0, 100))
-        draw.text((char_x, char_y), char, fill=color, font=font)
-    
-    # 添加噪点
-    for _ in range(50):
-        x = random.randint(0, width)
-        y = random.randint(0, height)
-        draw.point((x, y), fill='gray')
-    
-    # 转换为base64
-    buffer = BytesIO()
-    image.save(buffer, format='PNG')
-    image_data = buffer.getvalue()
-    image_base64 = base64.b64encode(image_data).decode('utf-8')
-    
-    return captcha_text, f"data:image/png;base64,{image_base64}"
 
-def clean_expired_captchas():
-    """清理过期的验证码"""
-    current_time = datetime.datetime.utcnow()
-    expired_keys = [key for key, value in captcha_store.items() 
-                   if current_time > value['expires']]
-    for key in expired_keys:
-        del captcha_store[key]
-
-@app.route('/api/captcha', methods=['GET'])
-def get_captcha():
-    # 清理过期验证码
-    clean_expired_captchas()
-    
-    captcha_text, captcha_image = generate_captcha()
-    captcha_id = str(uuid.uuid4())
-    
-    # 存储验证码（5分钟过期）
-    captcha_store[captcha_id] = {
-        'text': captcha_text.lower(),
-        'expires': datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
-    }
-    
-    return jsonify({
-        'id': captcha_id,
-        'image': captcha_image
-    })
 
 # 处理OPTIONS预检请求
 @app.before_request
@@ -250,44 +176,17 @@ def health_check():
 def register():
     try:
         data = request.get_json()
-        print(f"Registration request data: {data}")
         
         if not data:
-            print("No data provided")
             return jsonify({'error': '请提供注册信息'}), 400
     except Exception as e:
-        print(f"Error parsing JSON: {e}")
         return jsonify({'error': '无效的JSON格式'}), 400
     
     username = data.get('username')
     password = data.get('password')
-    captcha_id = data.get('captcha_id')
-    captcha_text = data.get('captcha_text')
-    
     # 验证必填字段
-    print(f"Fields - username: {username}, password: {'*' * len(password) if password else None}, captcha_id: {captcha_id}, captcha_text: {captcha_text}")
-    if not all([username, password, captcha_id, captcha_text]):
-        print("Missing required fields")
-        return jsonify({'error': '所有字段都是必填的'}), 400
-    
-    # 验证验证码
-    print(f"Captcha store keys: {list(captcha_store.keys())}")
-    if captcha_id not in captcha_store:
-        print(f"Captcha ID {captcha_id} not found in store")
-        return jsonify({'error': '验证码已过期'}), 400
-    
-    captcha_data = captcha_store[captcha_id]
-    
-    # 检查验证码是否过期
-    if datetime.datetime.utcnow() > captcha_data['expires']:
-        del captcha_store[captcha_id]
-        return jsonify({'error': '验证码已过期'}), 400
-    
-    if captcha_data['text'].lower() != captcha_text.lower():
-        return jsonify({'error': '验证码错误'}), 400
-    
-    # 删除已使用的验证码
-    del captcha_store[captcha_id]
+    if not all([username, password]):
+        return jsonify({'error': '用户名和密码是必填项'}), 400
     
     # 验证用户名长度
     if len(username) < 3:

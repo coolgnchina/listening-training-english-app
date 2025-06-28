@@ -19,17 +19,7 @@
           <input type="password" id="confirmPassword" v-model="confirmPassword" required placeholder="请再次输入密码" class="form-input">
           <div v-if="confirmPassword && password !== confirmPassword" class="password-hint">两次输入的密码不一致</div>
         </div>
-        <div class="form-group">
-          <label for="captcha" class="form-label">验证码</label>
-          <div class="captcha-container">
-            <input type="text" id="captcha" v-model="captcha" required placeholder="请输入验证码" class="form-input captcha-input">
-            <div class="captcha-image" @click="refreshCaptcha">
-              <img v-if="captchaImage" :src="captchaImage" alt="验证码" />
-              <div v-else class="captcha-loading">加载中...</div>
-            </div>
-          </div>
-          <button type="button" class="btn-refresh" @click="refreshCaptcha">刷新验证码</button>
-        </div>
+
         <button type="submit" class="btn btn-primary submit-btn">注册</button>
         <p v-if="message" :class="messageType" class="message">{{ message }}</p>
       </form>
@@ -46,35 +36,10 @@ import { buildApiUrl } from '../config/api';
 const username = ref('');
 const password = ref('');
 const confirmPassword = ref('');
-const captcha = ref('');
-const captchaImage = ref('');
-const captchaId = ref('');
 const message = ref('');
 const messageType = ref('');
 const authStore = useAuthStore();
 const router = useRouter();
-
-// 获取验证码
-const getCaptcha = async () => {
-  try {
-    const response = await fetch(buildApiUrl('/captcha'));
-    if (response.ok) {
-      const data = await response.json();
-      captchaImage.value = data.image;
-      captchaId.value = data.id;
-    }
-  } catch (error) {
-    console.error('获取验证码失败:', error);
-  }
-};
-
-// 刷新验证码
-const refreshCaptcha = () => {
-  getCaptcha();
-};
-
-// 页面加载时获取验证码
-getCaptcha();
 
 const handleRegister = async () => {
   // 基本验证
@@ -96,13 +61,7 @@ const handleRegister = async () => {
     return;
   }
   
-  if (!captcha.value) {
-    message.value = '请输入验证码';
-    messageType.value = 'error';
-    return;
-  }
-  
-  const result = await authStore.register(username.value, password.value, captcha.value, captchaId.value);
+  const result = await authStore.register(username.value, password.value);
   if (result.success) {
     message.value = '注册成功！';
     messageType.value = 'success';
@@ -110,15 +69,11 @@ const handleRegister = async () => {
     username.value = '';
     password.value = '';
     confirmPassword.value = '';
-    captcha.value = '';
     // 3秒后跳转到登录页面
     setTimeout(() => router.push('/login'), 3000);
   } else {
     message.value = result.message || '注册失败，请检查输入信息。';
     messageType.value = 'error';
-    // 注册失败后刷新验证码
-    refreshCaptcha();
-    captcha.value = '';
   }
 };
 </script>
