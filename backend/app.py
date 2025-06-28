@@ -141,11 +141,8 @@ def generate_captcha():
     image = Image.new('RGB', (width, height), color='white')
     draw = ImageDraw.Draw(image)
     
-    # 尝试使用系统字体，如果失败则使用默认字体
-    try:
-        font = ImageFont.truetype('arial.ttf', 20)
-    except:
-        font = ImageFont.load_default()
+    # 使用Pillow自带的默认字体，以确保在任何环境中都能运行
+    font = ImageFont.load_default()
     
     # 添加干扰线
     for _ in range(5):
