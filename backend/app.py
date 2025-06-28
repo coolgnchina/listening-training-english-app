@@ -227,13 +227,12 @@ def register():
         return jsonify({'error': '请提供注册信息'}), 400
     
     username = data.get('username')
-    email = data.get('email')
     password = data.get('password')
     captcha_id = data.get('captcha_id')
     captcha_text = data.get('captcha_text')
     
     # 验证必填字段
-    if not all([username, email, password, captcha_id, captcha_text]):
+    if not all([username, password, captcha_id, captcha_text]):
         return jsonify({'error': '所有字段都是必填的'}), 400
     
     # 验证验证码
@@ -246,20 +245,21 @@ def register():
     # 删除已使用的验证码
     del captcha_store[captcha_id]
     
-    # 验证邮箱格式
-    if not validate_email(email):
-        return jsonify({'error': '邮箱格式不正确'}), 400
+    # 验证用户名长度
+    if len(username) < 3:
+        return jsonify({'error': '用户名长度至少为3位'}), 400
     
-    # 检查用户名和邮箱是否已存在
+    # 验证密码长度
+    if len(password) < 6:
+        return jsonify({'error': '密码长度至少为6位'}), 400
+    
+    # 检查用户名是否已存在
     if User.query.filter_by(username=username).first():
         return jsonify({'error': '用户名已存在'}), 400
     
-    if User.query.filter_by(email=email).first():
-        return jsonify({'error': '邮箱已被注册'}), 400
-    
     # 创建新用户
     hashed_password = generate_password_hash(password)
-    new_user = User(username=username, email=email, password_hash=hashed_password)
+    new_user = User(username=username, password_hash=hashed_password)
     
     try:
         db.session.add(new_user)

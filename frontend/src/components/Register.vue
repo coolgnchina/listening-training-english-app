@@ -13,6 +13,12 @@
           <input type="password" id="password" v-model="password" required placeholder="请输入您的密码（至少6位）" class="form-input">
           <div v-if="password && password.length < 6" class="password-hint">密码长度至少为6位</div>
         </div>
+        
+        <div class="form-group">
+          <label for="confirmPassword" class="form-label">确认密码</label>
+          <input type="password" id="confirmPassword" v-model="confirmPassword" required placeholder="请再次输入密码" class="form-input">
+          <div v-if="confirmPassword && password !== confirmPassword" class="password-hint">两次输入的密码不一致</div>
+        </div>
         <div class="form-group">
           <label for="captcha" class="form-label">验证码</label>
           <div class="captcha-container">
@@ -38,8 +44,8 @@ import { useRouter } from 'vue-router';
 import { buildApiUrl } from '../config/api';
 
 const username = ref('');
-
 const password = ref('');
+const confirmPassword = ref('');
 const captcha = ref('');
 const captchaImage = ref('');
 const captchaId = ref('');
@@ -72,7 +78,7 @@ getCaptcha();
 
 const handleRegister = async () => {
   // 基本验证
-  if (!username.value || !password.value) {
+  if (!username.value || !password.value || !confirmPassword.value) {
     message.value = '请填写所有必填字段';
     messageType.value = 'error';
     return;
@@ -80,6 +86,12 @@ const handleRegister = async () => {
   
   if (password.value.length < 6) {
     message.value = '密码长度至少为6位';
+    messageType.value = 'error';
+    return;
+  }
+  
+  if (password.value !== confirmPassword.value) {
+    message.value = '两次输入的密码不一致';
     messageType.value = 'error';
     return;
   }
@@ -96,8 +108,8 @@ const handleRegister = async () => {
     messageType.value = 'success';
     // 清空表单
     username.value = '';
-
     password.value = '';
+    confirmPassword.value = '';
     captcha.value = '';
     // 3秒后跳转到登录页面
     setTimeout(() => router.push('/login'), 3000);
