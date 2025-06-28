@@ -2,6 +2,8 @@ import { defineStore } from 'pinia';
 import { jwtDecode } from 'jwt-decode';
 import { buildApiUrl } from '../config/api';
 
+// 修复重复导入问题
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     token: localStorage.getItem('token') || null,
