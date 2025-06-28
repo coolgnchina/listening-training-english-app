@@ -19,7 +19,7 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login(username, password) {
       try {
-        const response = await fetch(buildApiUrl('/api/login'), {
+        const response = await fetch(buildApiUrl('/login'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ export const useAuthStore = defineStore('auth', {
     },
     async register(username, password) {
       try {
-        const response = await fetch(buildApiUrl('/api/register'), {
+        const response = await fetch(buildApiUrl('/register'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
