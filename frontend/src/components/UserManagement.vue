@@ -233,7 +233,7 @@ const checkPermission = () => {
 // 获取用户统计信息
 const fetchStats = async () => {
   try {
-        const response = await fetch(buildApiUrl('/api/users/stats'), {
+        const response = await fetch(buildApiUrl('/users/stats'), {
       headers: {
         'Authorization': `Bearer ${authStore.token}`,
       },
@@ -250,7 +250,7 @@ const fetchStats = async () => {
 // 获取用户列表
 const fetchUsers = async () => {
   try {
-        const response = await fetch(buildApiUrl('/api/users'), {
+        const response = await fetch(buildApiUrl('/users'), {
       headers: {
         'Authorization': `Bearer ${authStore.token}`,
       },
@@ -271,7 +271,7 @@ const fetchUsers = async () => {
 // 查看用户详情
 const viewUser = async (userId) => {
   try {
-        const response = await fetch(buildApiUrl(`/api/users/${userId}`), {
+        const response = await fetch(buildApiUrl(`/users/${userId}`), {
       headers: {
         'Authorization': `Bearer ${authStore.token}`,
       },
@@ -313,7 +313,7 @@ const updateUser = async () => {
       updateData.password = editForm.value.password;
     }
     
-        const response = await fetch(buildApiUrl(`/api/users/${editingUserId.value}`), {
+        const response = await fetch(buildApiUrl(`/users/${editingUserId.value}`), {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -348,7 +348,7 @@ const confirmDelete = async () => {
   showConfirmDialog.value = false;
   
   try {
-        const response = await fetch(buildApiUrl(`/api/users/${userId}`), {
+        const response = await fetch(buildApiUrl(`/users/${userId}`), {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${authStore.token}`,

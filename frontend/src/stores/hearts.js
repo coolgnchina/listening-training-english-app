@@ -50,7 +50,7 @@ export const useHeartsStore = defineStore('hearts', () => {
     }
     
     try {
-            const response = await fetch(buildApiUrl('/api/user/hearts'), {
+            const response = await fetch(buildApiUrl('/user/hearts'), {
         headers: {
           'Authorization': `Bearer ${authStore.token}`,
         },
@@ -103,7 +103,7 @@ export const useHeartsStore = defineStore('hearts', () => {
     }
     
     try {
-            const response = await fetch(buildApiUrl('/api/user/hearts/lose'), {
+            const response = await fetch(buildApiUrl('/user/hearts/lose'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -145,7 +145,7 @@ export const useHeartsStore = defineStore('hearts', () => {
     if (!authStore.token) return
     
     try {
-            const response = await fetch(buildApiUrl('/api/user/hearts/reward'), {
+            const response = await fetch(buildApiUrl('/user/hearts/reward'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -179,7 +179,7 @@ export const useHeartsStore = defineStore('hearts', () => {
     if (!authStore.token) return
     
     try {
-            const response = await fetch(buildApiUrl('/api/hearts/consecutive'), {
+            const response = await fetch(buildApiUrl('/hearts/consecutive'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
