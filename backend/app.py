@@ -193,8 +193,19 @@ def generate_captcha():
     
     return captcha_text, f"data:image/png;base64,{image_base64}"
 
+def clean_expired_captchas():
+    """清理过期的验证码"""
+    current_time = datetime.datetime.utcnow()
+    expired_keys = [key for key, value in captcha_store.items() 
+                   if current_time > value['expires']]
+    for key in expired_keys:
+        del captcha_store[key]
+
 @app.route('/api/captcha', methods=['GET'])
 def get_captcha():
+    # 清理过期验证码
+    clean_expired_captchas()
+    
     captcha_text, captcha_image = generate_captcha()
     captcha_id = str(uuid.uuid4())
     
