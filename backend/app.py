@@ -239,7 +239,14 @@ def register():
     if captcha_id not in captcha_store:
         return jsonify({'error': '验证码已过期'}), 400
     
-    if captcha_store[captcha_id].lower() != captcha_text.lower():
+    captcha_data = captcha_store[captcha_id]
+    
+    # 检查验证码是否过期
+    if datetime.datetime.utcnow() > captcha_data['expires']:
+        del captcha_store[captcha_id]
+        return jsonify({'error': '验证码已过期'}), 400
+    
+    if captcha_data['text'].lower() != captcha_text.lower():
         return jsonify({'error': '验证码错误'}), 400
     
     # 删除已使用的验证码
