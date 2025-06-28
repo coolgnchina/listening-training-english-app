@@ -3,6 +3,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import vueDevTools from 'vite-plugin-vue-devtools'
+import { fileURLToPath, URL } from 'node:url'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -20,6 +21,8 @@ export default defineConfig({
     // 生产环境构建配置
     outDir: 'dist',
     assetsDir: 'assets',
+    // 禁用清空输出目录，避免删除.user.ini等特殊文件
+    emptyOutDir: false,
     // 生成source map用于调试
     sourcemap: false,
     // 压缩配置
