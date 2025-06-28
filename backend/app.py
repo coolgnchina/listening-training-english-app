@@ -232,10 +232,16 @@ def health_check():
 
 @app.route('/api/register', methods=['POST'])
 def register():
-    data = request.get_json()
-    
-    if not data:
-        return jsonify({'error': '请提供注册信息'}), 400
+    try:
+        data = request.get_json()
+        print(f"Registration request data: {data}")
+        
+        if not data:
+            print("No data provided")
+            return jsonify({'error': '请提供注册信息'}), 400
+    except Exception as e:
+        print(f"Error parsing JSON: {e}")
+        return jsonify({'error': '无效的JSON格式'}), 400
     
     username = data.get('username')
     password = data.get('password')
@@ -243,11 +249,15 @@ def register():
     captcha_text = data.get('captcha_text')
     
     # 验证必填字段
+    print(f"Fields - username: {username}, password: {'*' * len(password) if password else None}, captcha_id: {captcha_id}, captcha_text: {captcha_text}")
     if not all([username, password, captcha_id, captcha_text]):
+        print("Missing required fields")
         return jsonify({'error': '所有字段都是必填的'}), 400
     
     # 验证验证码
+    print(f"Captcha store keys: {list(captcha_store.keys())}")
     if captcha_id not in captcha_store:
+        print(f"Captcha ID {captcha_id} not found in store")
         return jsonify({'error': '验证码已过期'}), 400
     
     captcha_data = captcha_store[captcha_id]
